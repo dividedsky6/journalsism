@@ -1,0 +1,11 @@
+# Personal journal data: never commit
+*.zip
+journalism-backup-*.json
+journal-backup-*.json
+exports/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+node_modules/

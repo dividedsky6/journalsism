@@ -181,6 +181,9 @@ main{padding-bottom:120px}
 .copies .chk2 input{margin-top:3px}
 .copies small{color:var(--mute);font-size:13px}
 .copies .jtag{font-size:13px;margin-right:8px}
+.subcode{width:100%;height:96px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px;resize:none;overflow-wrap:anywhere}
+.acts2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.imp ol{padding-left:20px}
 .hint{color:var(--mute);font-size:13px;margin:-6px 0 0}
 .card .dn b{color:var(--jc,var(--ink))}
 .jtag{display:inline-flex;align-items:center;gap:5px;color:var(--ink)}
@@ -199,6 +202,7 @@ main{padding-bottom:120px}
 .jm-err{color:var(--danger);font-size:14px;min-height:1.2em;margin:8px 0 10px}
 @media(prefers-reduced-motion:no-preference){.jcard{transition:transform .15s}}
 @media(max-width:600px){
+  .tabs{width:100%}.tabs button{flex:1 1 auto;padding:0 6px;font-size:15px}
   .ystrip{gap:1px}.ystrip>*{border-radius:1px}.seg button{padding:0 14px}
   .year{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px}.yd{font-size:10px}.ymh b{font-size:17px}
   .jgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}

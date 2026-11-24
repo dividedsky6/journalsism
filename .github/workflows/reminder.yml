@@ -1,0 +1,39 @@
+name: Daily reminder
+
+# 9:00 pm Pacific. GitHub schedules run in UTC, so there's one line for daylight time (PDT, UTC-7)
+# and one for standard time (PST, UTC-8); the script only sends from the one that matches today.
+# To change the time, edit both cron lines and REMINDER_TIME below.
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 21:00 PDT
+    - cron: '0 5 * * *'   # 21:00 PST
+  workflow_dispatch:      # "Run workflow" button: sends a reminder right now (handy for testing)
+
+permissions:
+  contents: read
+  actions: write          # lets the last step keep this schedule from being paused
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save --no-package-lock web-push@3.6.7
+      - run: node scripts/send-reminder.mjs
+        env:
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          PUSH_SUBSCRIPTIONS: ${{ secrets.PUSH_SUBSCRIPTIONS }}
+          SCHEDULE: ${{ github.event.schedule }}
+          REMINDER_TZ: America/Los_Angeles
+          REMINDER_TIME: '21:00'
+          REMINDER_TEXT: What happened today?
+      # GitHub pauses scheduled workflows in repos with no activity for 60 days. Re-enabling keeps it running.
+      - name: Keep the daily schedule running
+        if: always()
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/reminder.yml/enable" || true
+        env:
+          GH_TOKEN: ${{ github.token }}

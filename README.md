@@ -22,6 +22,16 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
+## Daily reminder ("What happened today?")
+
+On iPhone, Journalism can send a nightly notification and put a badge on its icon on days you haven't written.
+
+1. Open the site in Safari → **Share → Add to Home Screen**, then open Journalism from that icon. The Home Screen app keeps its own copy of your journal, so import your Day One file or a backup there.
+2. **Settings → Daily reminder → Turn on daily reminders**, and allow notifications.
+3. Tap **Copy code** and add it as a line in the repo secret `PUSH_SUBSCRIPTIONS` (**Settings → Secrets and variables → Actions**). One line per device.
+
+The schedule is `.github/workflows/reminder.yml` (9:00 pm Pacific; edit both cron lines and `REMINDER_TIME` to change it). It needs two more secrets, `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`, a key pair made with `npx web-push generate-vapid-keys`; the public half also goes in `config.js`. **Actions → Daily reminder → Run workflow** sends one immediately to test. The notification comes every evening, since the scheduler can't see your private entries; the badge clears once you've written that day.
+
 ## Where entries are stored
 
 In the browser's IndexedDB (`storage.js`), on the device you use. Nothing is sent to a server. That means:
@@ -49,6 +59,9 @@ If you copied entries between journals in Day One, the importer spots them and o
 | `styles.css` | All styling, light and dark |
 | `app.js` | Views, editor, markdown renderer, Day One importer, backup |
 | `config.js` | Your settings: default colors for journals by name (Day One's export has no colors) |
+| `sw.js` | Service worker: works offline, shows the daily reminder, sets the badge |
+| `manifest.webmanifest`, `icons/` | Home Screen app name and icons |
+| `scripts/send-reminder.mjs`, `.github/workflows/reminder.yml` | The daily reminder sender and its schedule |
 | `storage.js` | IndexedDB storage: entries and journal settings (name, color) |
 
 ## Publishing with GitHub Pages

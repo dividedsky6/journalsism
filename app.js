@@ -205,7 +205,7 @@ function renderEntries() {
     if (otd.length) h += `<section class="otd"><h2>On this day</h2><div class="rail">${otd.map(e => `<button class="tile" data-id="${esc(e.id)}" style="--jc:${colorOf(e.journal)}"><span class="yr">${esc(e._k.slice(0, 4))}</span><span class="tl">${esc(e._title)}</span></button>`).join('')}</div></section>`;
   }
   if (!list.length && !S.q && !S.tag && !S.starred && !S.day) {
-    h += S.journal ? `<div class="empty"><h2>Nothing in ${esc(S.journal)} yet</h2><p><button class="btn pri" data-act="new">Write an entry</button></p></div>` : `<div class="empty"><h2>Your first page is blank</h2><p>Write today’s entry, or bring your Day One journals across from the Import tab.</p><p><button class="btn pri" data-act="new">Write an entry</button> <button class="btn" data-act="import">Import from Day One</button></p></div>`;
+    h += S.journal ? `<div class="empty"><h2>Nothing in ${esc(S.journal)} yet</h2><p><button class="btn pri" data-act="new">Write an entry</button></p></div>` : `<div class="empty"><h2>Your first page is blank</h2><p>Write today’s entry, or bring your Day One journals across from the Settings tab.</p><p><button class="btn pri" data-act="new">Write an entry</button> <button class="btn" data-act="import">Import from Day One</button></p></div>`;
   } else if (!list.length) {
     h += `<div class="empty"><h2>Nothing matches</h2><p>Try a different search or clear the filters.</p></div>`;
   } else {
@@ -222,7 +222,7 @@ function renderEntries() {
 function renderJournals() {
   const agg = journalStats(); const js = journals();
   if (!js.length) {
-    $('#main').innerHTML = `<div class="empty"><h2>Your first page is blank</h2><p>Start a journal, or bring your Day One journals across from the Import tab.</p><p><button class="btn pri" data-newj>New journal</button> <button class="btn" data-act="import">Import from Day One</button></p></div>`;
+    $('#main').innerHTML = `<div class="empty"><h2>Your first page is blank</h2><p>Start a journal, or bring your Day One journals across from the Settings tab.</p><p><button class="btn pri" data-newj>New journal</button> <button class="btn" data-act="import">Import from Day One</button></p></div>`;
     return;
   }
   const span = a => { const f = fmt(a.first, { month: 'short', year: 'numeric' }), l = fmt(a.last, { month: 'short', year: 'numeric' }); return f === l ? f : `${f} – ${l}`; };
@@ -367,6 +367,7 @@ function renderImport() {
     <label class="chk2"><input type="checkbox" id="skip" checked> Skip entries already imported (safe to re-run if an import stops)</label>
     <div id="prog" hidden><div class="bar"><div id="pbar"></div></div><div id="ptxt" style="font-weight:600"></div><div class="log" id="plog"></div></div>
   </section>
+  <section class="imp" id="remind"></section>
   <section class="imp" id="dups">
     <h2>Copies across journals</h2>
     <p style="color:var(--mute);margin:0 0 14px">Day One can't put one entry in two journals, so you may have copied some. Merge each copy into one entry that's filed in all of its journals. The earliest version is kept.</p>
@@ -385,6 +386,53 @@ function renderImport() {
   drop.addEventListener('drop', x => { x.preventDefault(); const f = x.dataTransfer.files[0]; if (f) runImport(f); });
   $('#file').addEventListener('change', x => { const f = x.target.files[0]; if (f) runImport(f); x.target.value = ''; });
   drawCopies();
+  drawReminders();
+}
+
+/* ---------- daily reminder (push notifications) and Home Screen badge ---------- */
+const CFG = window.JOURNALISM_CONFIG || {};
+const REMIND_TEXT = CFG.REMINDER_TEXT || 'What happened today?';
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+function b64ToBytes(s) { const r = atob((s + '='.repeat((4 - s.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, c => c.charCodeAt(0)); }
+const swReg = async () => ('serviceWorker' in navigator ? (await navigator.serviceWorker.getRegistration()) || null : null);
+/** Badge "1" on the app icon until you've written something today. */
+async function updateBadge() {
+  if (!navigator.setAppBadge) return;
+  const tk = todayKey(); const wrote = sorted().slice(0, 40).some(e => keyOf(new Date(e.date), LOCAL_TZ) === tk);
+  try { if (wrote) await navigator.clearAppBadge(); else await navigator.setAppBadge(1); } catch {}
+}
+async function drawReminders() {
+  const el = $('#remind'); if (!el) return;
+  let h = '<h2>Daily reminder</h2>';
+  if (!CFG.VAPID_PUBLIC_KEY) h += '<p class="hint">Reminders aren\'t set up for this copy of the app (no VAPID_PUBLIC_KEY in config.js).</p>';
+  else if (isIOS() && !isStandalone()) h += `<p style="margin:0 0 8px">To get a nightly “${esc(REMIND_TEXT)}” notification and a badge on the app icon, add Journalism to your Home Screen first:</p>
+    <ol><li>Tap the <b>Share</b> button in Safari.</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open Journalism from the new icon and come back to Settings.</li></ol>
+    <p class="hint">The Home Screen app keeps its own copy of your journal, so import your Day One file or a backup there.</p>`;
+  else if (!pushSupported()) h += '<p class="hint">This browser can\'t receive notifications. On iPhone, open Journalism from its Home Screen icon.</p>';
+  else {
+    const reg = await swReg(); const sub = reg && await reg.pushManager.getSubscription();
+    if (sub && Notification.permission === 'granted') {
+      h += `<p style="margin:0 0 8px"><b>Reminders are on for this device.</b> Last step, once per device: copy this code and send it to Claude, or add it to the <code>PUSH_SUBSCRIPTIONS</code> secret in your GitHub repo.</p>
+        <textarea class="subcode" id="subcode" readonly aria-label="Reminder code">${esc(JSON.stringify(sub))}</textarea>
+        <div class="acts2"><button class="btn pri" id="copysub">Copy code</button><button class="btn" id="testpush">Test notification</button><button class="btn" id="pushoff">Turn off</button></div>`;
+    } else if (Notification.permission === 'denied') {
+      h += '<p style="margin:0">Notifications are blocked for Journalism. Turn them on in your iPhone\'s <b>Settings → Notifications → Journalism</b>, then come back here.</p>';
+    } else {
+      h += `<p style="margin:0 0 12px">Get a “${esc(REMIND_TEXT)}” notification every evening, and a badge on the app icon on days you haven't written yet.</p><button class="btn pri" id="pushon">Turn on daily reminders</button>`;
+    }
+  }
+  el.innerHTML = h;
+}
+async function turnOnPush() {
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { toast('Notifications were not allowed'); return drawReminders(); }
+    const reg = await navigator.serviceWorker.ready;
+    await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(CFG.VAPID_PUBLIC_KEY) });
+    updateBadge(); toast('Reminders turned on'); drawReminders();
+  } catch (err) { toast('Could not turn on reminders: ' + ((err && err.message) || err)); }
 }
 
 /* ---------- copies across journals ---------- */
@@ -553,7 +601,7 @@ function saveNow() {
   if (json === lastSaved) { setSaved(lastSaved ? 'Saved' : ''); return chain; }
   if (!b.text.trim() && !entries.has(e.id)) return chain;
   lastSaved = json; b.modified = new Date().toISOString(); setSaved('Saving…');
-  chain = chain.then(() => store.put(e.id, b)).then(() => { entries.set(e.id, norm(e.id, b)); setSaved('Saved'); render(); })
+  chain = chain.then(() => store.put(e.id, b)).then(() => { entries.set(e.id, norm(e.id, b)); setSaved('Saved'); render(); updateBadge(); })
     .catch(err => { lastSaved = ''; setSaved('Not saved'); toast(err && err.code === 'quota_exceeded' ? 'Storage is full: entry not saved' : 'Could not save: ' + ((err && err.message) || 'try again')); });
   return chain;
 }
@@ -569,7 +617,7 @@ $('#del').addEventListener('click', async () => {
   const e = cur; clearTimeout(saveT);
   try {
     await store.delete(e.id);
-    entries.delete(e.id); cur = null; $('#sheet').hidden = true; document.body.style.overflow = ''; render(); toast('Entry deleted');
+    entries.delete(e.id); updateBadge(); cur = null; $('#sheet').hidden = true; document.body.style.overflow = ''; render(); toast('Entry deleted');
   } catch (err) { toast('Could not delete: ' + ((err && err.message) || 'try again')); }
 });
 document.addEventListener('keydown', x => {
@@ -729,6 +777,10 @@ $('#main').addEventListener('click', x => {
     return render();
   }
   if (t.closest('#export')) return exportAll();
+  if (t.closest('#pushon')) return turnOnPush();
+  if (t.closest('#copysub')) { const v = $('#subcode').value; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(() => toast('Code copied'), () => { $('#subcode').select(); toast('Select the code and copy it'); }); return; }
+  if (t.closest('#testpush')) { swReg().then(r => r && r.showNotification('Journalism', { body: REMIND_TEXT, icon: 'icons/icon-192.png', badge: 'icons/badge-96.png', tag: 'daily-reminder', data: { url: './#write' } })).catch(() => toast('Could not show a notification')); return; }
+  if (t.closest('#pushoff')) { swReg().then(r => r && r.pushManager.getSubscription()).then(s => s && s.unsubscribe()).then(() => { toast('Reminders turned off on this device'); drawReminders(); }); return; }
   if (t.closest('#findcopies')) { S.copies = findCopies(); return drawCopies(); }
   const mc = t.closest('#mergecopies');
   if (mc) {
@@ -749,6 +801,12 @@ new ResizeObserver(setHH).observe($('#top'));
 
 /* ---------- boot ---------- */
 render();
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'write' && store) openEntry(null, true); });
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && store) updateBadge(); });
+window.addEventListener('hashchange', () => { if (location.hash === '#write' && store) { history.replaceState(null, '', location.pathname + location.search); openEntry(null, true); } });
 (async () => {
   try {
     store = await JournalStore.open();
@@ -756,7 +814,9 @@ render();
     for (const v of await store.all()) if (v && v.id && v.date) entries.set(v.id, norm(v.id, v));
     await ensureJournals();
     status(''); render();
-    monthlyBackupPrompt();
+    updateBadge();
+    if (location.hash === '#write') { history.replaceState(null, '', location.pathname + location.search); openEntry(null, true); }
+    else monthlyBackupPrompt();
   } catch (err) {
     status('Could not open journal storage in this browser: ' + ((err && err.message) || err) + '. Private browsing can block it.');
   }
