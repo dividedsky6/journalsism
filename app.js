@@ -395,6 +395,17 @@ const REMIND_TEXT = CFG.REMINDER_TEXT || 'What happened today?';
 const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const b64url = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+/** This device's own push key pair (made on the phone, never sent anywhere except the setup code you copy). */
+async function deviceKeys() {
+  try { const k = JSON.parse(localStorage.getItem('journalism.pushKeys') || 'null'); if (k && k.pub && k.priv) return k; } catch {}
+  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const k = { pub: b64url(await crypto.subtle.exportKey('raw', pair.publicKey)), priv: (await crypto.subtle.exportKey('jwk', pair.privateKey)).d };
+  localStorage.setItem('journalism.pushKeys', JSON.stringify(k));
+  return k;
+}
+/** One line to paste into the PUSH_SUBSCRIPTIONS secret: this device's subscription plus its keys. */
+function setupCode(sub) { let k = null; try { k = JSON.parse(localStorage.getItem('journalism.pushKeys') || 'null'); } catch {} return JSON.stringify(k ? { s: sub.toJSON(), k: k.pub, p: k.priv } : sub.toJSON()); }
 function b64ToBytes(s) { const r = atob((s + '='.repeat((4 - s.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, c => c.charCodeAt(0)); }
 const swReg = async () => ('serviceWorker' in navigator ? (await navigator.serviceWorker.getRegistration()) || null : null);
 /** Badge "1" on the app icon until you've written something today. */
@@ -406,17 +417,16 @@ async function updateBadge() {
 async function drawReminders() {
   const el = $('#remind'); if (!el) return;
   let h = '<h2>Daily reminder</h2>';
-  if (!CFG.VAPID_PUBLIC_KEY) h += '<p class="hint">Reminders aren\'t set up for this copy of the app (no VAPID_PUBLIC_KEY in config.js).</p>';
-  else if (isIOS() && !isStandalone()) h += `<p style="margin:0 0 8px">To get a nightly “${esc(REMIND_TEXT)}” notification and a badge on the app icon, add Journalism to your Home Screen first:</p>
+  if (isIOS() && !isStandalone()) h += `<p style="margin:0 0 8px">To get a nightly “${esc(REMIND_TEXT)}” notification and a badge on the app icon, add Journalism to your Home Screen first:</p>
     <ol><li>Tap the <b>Share</b> button in Safari.</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open Journalism from the new icon and come back to Settings.</li></ol>
     <p class="hint">The Home Screen app keeps its own copy of your journal, so import your Day One file or a backup there.</p>`;
   else if (!pushSupported()) h += '<p class="hint">This browser can\'t receive notifications. On iPhone, open Journalism from its Home Screen icon.</p>';
   else {
     const reg = await swReg(); const sub = reg && await reg.pushManager.getSubscription();
     if (sub && Notification.permission === 'granted') {
-      h += `<p style="margin:0 0 8px"><b>Reminders are on for this device.</b> Last step, once per device: copy this code and send it to Claude, or add it to the <code>PUSH_SUBSCRIPTIONS</code> secret in your GitHub repo.</p>
-        <textarea class="subcode" id="subcode" readonly aria-label="Reminder code">${esc(JSON.stringify(sub))}</textarea>
-        <div class="acts2"><button class="btn pri" id="copysub">Copy code</button><button class="btn" id="testpush">Test notification</button><button class="btn" id="pushoff">Turn off</button></div>`;
+      h += `<p style="margin:0 0 8px"><b>Reminders are on for this device.</b> Last step, once per device: copy this setup code and paste it into the <code>PUSH_SUBSCRIPTIONS</code> secret in your GitHub repo. Keep it private; it works like a password for your reminders.</p>
+        <textarea class="subcode" id="subcode" readonly aria-label="Setup code">${esc(setupCode(sub))}</textarea>
+        <div class="acts2"><button class="btn pri" id="copysub">Copy setup code</button><button class="btn" id="testpush">Test notification</button><button class="btn" id="pushoff">Turn off</button></div>`;
     } else if (Notification.permission === 'denied') {
       h += '<p style="margin:0">Notifications are blocked for Journalism. Turn them on in your iPhone\'s <b>Settings → Notifications → Journalism</b>, then come back here.</p>';
     } else {
@@ -430,7 +440,9 @@ async function turnOnPush() {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { toast('Notifications were not allowed'); return drawReminders(); }
     const reg = await navigator.serviceWorker.ready;
-    await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(CFG.VAPID_PUBLIC_KEY) });
+    const old = await reg.pushManager.getSubscription(); if (old) await old.unsubscribe();
+    const keys = await deviceKeys();
+    await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(keys.pub) });
     updateBadge(); toast('Reminders turned on'); drawReminders();
   } catch (err) { toast('Could not turn on reminders: ' + ((err && err.message) || err)); }
 }
@@ -778,7 +790,7 @@ $('#main').addEventListener('click', x => {
   }
   if (t.closest('#export')) return exportAll();
   if (t.closest('#pushon')) return turnOnPush();
-  if (t.closest('#copysub')) { const v = $('#subcode').value; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(() => toast('Code copied'), () => { $('#subcode').select(); toast('Select the code and copy it'); }); return; }
+  if (t.closest('#copysub')) { const v = $('#subcode').value; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(() => toast('Setup code copied'), () => { $('#subcode').select(); toast('Select the code and copy it'); }); return; }
   if (t.closest('#testpush')) { swReg().then(r => r && r.showNotification('Journalism', { body: REMIND_TEXT, icon: 'icons/icon-192.png', badge: 'icons/badge-96.png', tag: 'daily-reminder', data: { url: './#write' } })).catch(() => toast('Could not show a notification')); return; }
   if (t.closest('#pushoff')) { swReg().then(r => r && r.pushManager.getSubscription()).then(s => s && s.unsubscribe()).then(() => { toast('Reminders turned off on this device'); drawReminders(); }); return; }
   if (t.closest('#findcopies')) { S.copies = findCopies(); return drawCopies(); }

@@ -1,6 +1,6 @@
 /* Journalism service worker: works offline, shows the daily reminder, sets the Home Screen badge.
  * Bump VERSION when you change the app so phones pick up the new files. */
-const VERSION = 'journalism-v2';
+const VERSION = 'journalism-v3';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'storage.js', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/badge-96.png'];
 

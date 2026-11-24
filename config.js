@@ -9,9 +9,6 @@ window.JOURNALISM_CONFIG = {
     'The Extra Big Things': '#0f8a8a', // Teal
     'Highdeas': '#9a7ae0',             // Light purple
   },
-  // Daily reminder: the public half of the push key pair. The private half is the
-  // VAPID_PRIVATE_KEY secret in GitHub (never put it in this file).
-  VAPID_PUBLIC_KEY: 'BDINVcGMXTzWk2FqYrttwMMn46AAQcAsgtnQ1HkMTesYmcc_sd2qoqmTDNiFwpkVNtWnTqMyzt_147HhWqmutvk',
-  // Shown in the notification. The time is set in .github/workflows/reminder.yml.
+  // Daily reminder text shown in the notification. The time is set in .github/workflows/reminder.yml.
   REMINDER_TEXT: 'What happened today?',
 };

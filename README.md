@@ -28,9 +28,9 @@ On iPhone, Journalism can send a nightly notification and put a badge on its ico
 
 1. Open the site in Safari → **Share → Add to Home Screen**, then open Journalism from that icon. The Home Screen app keeps its own copy of your journal, so import your Day One file or a backup there.
 2. **Settings → Daily reminder → Turn on daily reminders**, and allow notifications.
-3. Tap **Copy code** and add it as a line in the repo secret `PUSH_SUBSCRIPTIONS` (**Settings → Secrets and variables → Actions**). One line per device.
+3. Tap **Copy setup code** and paste it as the repo secret `PUSH_SUBSCRIPTIONS` (**Settings → Secrets and variables → Actions → New repository secret**). For more devices, put one code per line. Each device makes its own key pair, which lives only on that device and in the secret.
 
-The schedule is `.github/workflows/reminder.yml` (9:00 pm Pacific; edit both cron lines and `REMINDER_TIME` to change it). It also needs the secret `VAPID_PRIVATE_KEY`. Its public half is in `config.js` and in the workflow file (make a new pair with `npx web-push generate-vapid-keys` and update all three if you ever replace it). **Actions → Daily reminder → Run workflow** sends one immediately to test. The notification comes every evening, since the scheduler can't see your private entries; the badge clears once you've written that day.
+The schedule is `.github/workflows/reminder.yml` (9:00 pm Pacific; edit both cron lines and `REMINDER_TIME` to change it). **Actions → Daily reminder → Run workflow** sends one immediately to test. The notification comes every evening, since the scheduler can't see your private entries; the badge clears once you've written that day.
 
 ## Where entries are stored
 
