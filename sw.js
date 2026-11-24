@@ -1,6 +1,6 @@
-/* Journalism service worker: works offline, shows the daily reminder, sets the Home Screen badge.
+/* Journalsism service worker: works offline, shows the daily reminder, sets the Home Screen badge.
  * Bump VERSION when you change the app so phones pick up the new files. */
-const VERSION = 'journalism-v4';
+const VERSION = 'journalism-v5';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'storage.js', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/badge-96.png'];
 
@@ -21,7 +21,7 @@ self.addEventListener('fetch', e => {
 // Daily reminder sent by the GitHub Actions scheduler (.github/workflows/reminder.yml).
 self.addEventListener('push', e => {
   let data = {}; try { data = e.data ? e.data.json() : {}; } catch { data = { body: e.data && e.data.text() }; }
-  const title = data.title || 'Journalism', body = data.body || 'What happened today?';
+  const title = data.title || 'Journalsism', body = data.body || 'What happened today?';
   e.waitUntil(Promise.all([
     self.registration.showNotification(title, { body, icon: 'icons/icon-192.png', badge: 'icons/badge-96.png', tag: 'daily-reminder', data: { url: './#write' } }),
     self.navigator && self.navigator.setAppBadge ? self.navigator.setAppBadge(1).catch(() => {}) : null,

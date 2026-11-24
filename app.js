@@ -1,4 +1,4 @@
-/* Journalism: a personal journal app.
+/* Journalsism: a personal journal app.
  * Entries live in this browser's IndexedDB (see storage.js).
  * Sections: dates, entries, markdown, ui helpers, views, entry sheet, import, events, boot. */
 (() => {
@@ -360,13 +360,14 @@ function renderImport() {
     <ol>
       <li>In Day One, open <b>Settings → Import/Export → Export</b> (on Mac: File → Export).</li>
       <li>Choose <b>JSON</b> format and the journals you want. You'll get a <b>.zip</b> file.</li>
-      <li>Pick that .zip below. A single <b>Journal.json</b> from inside it works too, and so does a Journalism backup file.</li>
+      <li>Pick that .zip below. A single <b>Journal.json</b> from inside it works too, and so does a Journalsism backup file.</li>
     </ol>
     <label class="drop" id="drop"><input type="file" id="file" accept=".zip,.json,application/zip,application/json">
       <b>Choose your Day One export</b><br><span style="color:var(--mute);font-size:14px">or drop it here</span></label>
     <label class="chk2"><input type="checkbox" id="skip" checked> Skip entries already imported (safe to re-run if an import stops)</label>
     <div id="prog" hidden><div class="bar"><div id="pbar"></div></div><div id="ptxt" style="font-weight:600"></div><div class="log" id="plog"></div></div>
   </section>
+  <section class="imp" id="pinsec"></section>
   <section class="imp" id="remind"></section>
   <section class="imp" id="dups">
     <h2>Copies across journals</h2>
@@ -388,6 +389,7 @@ function renderImport() {
   $('#file').addEventListener('change', x => { const f = x.target.files[0]; if (f) runImport(f); x.target.value = ''; });
   drawCopies();
   drawReminders();
+  drawPinSection();
   fetchLocked().then(d => { const el = $('#unlockslot'); if (d && el) el.innerHTML = '<button class="btn" id="unlockrepo">Unlock the journal saved on this site</button>'; });
 }
 
@@ -419,10 +421,10 @@ async function updateBadge() {
 async function drawReminders() {
   const el = $('#remind'); if (!el) return;
   let h = '<h2>Daily reminder</h2>';
-  if (isIOS() && !isStandalone()) h += `<p style="margin:0 0 8px">To get a nightly “${esc(REMIND_TEXT)}” notification and a badge on the app icon, add Journalism to your Home Screen first:</p>
-    <ol><li>Tap the <b>Share</b> button in Safari.</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open Journalism from the new icon and come back to Settings.</li></ol>
+  if (isIOS() && !isStandalone()) h += `<p style="margin:0 0 8px">To get a nightly “${esc(REMIND_TEXT)}” notification and a badge on the app icon, add Journalsism to your Home Screen first:</p>
+    <ol><li>Tap the <b>Share</b> button in Safari.</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open Journalsism from the new icon and come back to Settings.</li></ol>
     <p class="hint">The Home Screen app keeps its own copy of your journal, so import your Day One file or a backup there.</p>`;
-  else if (!pushSupported()) h += '<p class="hint">This browser can\'t receive notifications. On iPhone, open Journalism from its Home Screen icon.</p>';
+  else if (!pushSupported()) h += '<p class="hint">This browser can\'t receive notifications. On iPhone, open Journalsism from its Home Screen icon.</p>';
   else {
     const reg = await swReg(); const sub = reg && await reg.pushManager.getSubscription();
     if (sub && Notification.permission === 'granted') {
@@ -430,7 +432,7 @@ async function drawReminders() {
         <textarea class="subcode" id="subcode" readonly aria-label="Setup code">${esc(setupCode(sub))}</textarea>
         <div class="acts2"><button class="btn pri" id="copysub">Copy setup code</button><button class="btn" id="testpush">Test notification</button><button class="btn" id="pushoff">Turn off</button></div>`;
     } else if (Notification.permission === 'denied') {
-      h += '<p style="margin:0">Notifications are blocked for Journalism. Turn them on in your iPhone\'s <b>Settings → Notifications → Journalism</b>, then come back here.</p>';
+      h += '<p style="margin:0">Notifications are blocked for Journalsism. Turn them on in your iPhone\'s <b>Settings → Notifications → Journalsism</b>, then come back here.</p>';
     } else {
       h += `<p style="margin:0 0 12px">Get a “${esc(REMIND_TEXT)}” notification every evening, and a badge on the app icon on days you haven't written yet.</p><button class="btn pri" id="pushon">Turn on daily reminders</button>`;
     }
@@ -522,7 +524,8 @@ function drawSheet() {
   $('#star').classList.toggle('on', !!e.starred); $('#star').setAttribute('aria-pressed', !!e.starred);
   $('#mode').textContent = editing ? 'Done' : 'Edit';
   if (!editing) {
-    const facts = [e.place, weatherTxt(e.weather), ...e.tags.map(t => '#' + t)].filter(Boolean);
+    const where = [String(e.place || '').replace(/,\s*(United States|USA|US)$/i, ''), weatherTxt(e.weather)].filter(Boolean).join(' · ');
+    const facts = [where, ...e.tags.map(t => '#' + t)].filter(Boolean);
     $('#sbody').innerHTML = `<article class="prose"><div class="facts">${e.journals.map(j => `<span class="jf" style="--jc:${colorOf(j)}">${esc(j)}</span>`).join('')}${facts.map(f => `<span>${esc(f)}</span>`).join('')}</div>${md(asTitled(e.text), e) || '<p style="color:var(--mute)">Empty entry</p>'}</article>`;
     return;
   }
@@ -677,7 +680,7 @@ async function runImport(file) {
       data.entries.forEach(en => jobs.push([journal, en]));
     }
     total = jobs.length;
-    if (!total) throw new Error('No entries found in that file. Use a Day One JSON export or a Journalism backup.');
+    if (!total) throw new Error('No entries found in that file. Use a Day One JSON export or a Journalsism backup.');
     const tick = () => { const n = done + skipped + failed; pbar.style.width = (100 * n / total) + '%'; ptxt.textContent = `${n.toLocaleString()} of ${total.toLocaleString()} entries`; };
     let next = 0;
     const worker = async () => {
@@ -750,11 +753,80 @@ async function offerUnlock(force) {
     catch { $('#u-err').textContent = 'That passcode didn’t work. Check it and try again.'; $('#u-yes').disabled = false; return; }
     $('#u-yes').disabled = false; close();
     S.view = 'import'; render();
-    await runImport(new File([text], 'Journalism.json', { type: 'application/json' }));
+    await runImport(new File([text], 'Journalsism.json', { type: 'application/json' }));
     try { localStorage.setItem('journalism.lastBackup', String(Date.now())); } catch {} // the site's locked copy counts as a backup
+    if (!getPin()) { const p = await pinPad('set'); if (p) toast('App passcode set'); }
     S.view = 'journals'; render(); toast(`Unlocked ${entries.size.toLocaleString()} entries`);
   };
   return true;
+}
+
+/* ---------- app passcode: 4 digits, kept only on this device (a lock screen, not encryption) ---------- */
+const PIN_KEY = 'journalism.pin';
+const sha = async t => b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)));
+const getPin = () => { try { return JSON.parse(localStorage.getItem(PIN_KEY) || 'null'); } catch { return null; } };
+async function setPin(pin) { const salt = b64url(crypto.getRandomValues(new Uint8Array(16))); localStorage.setItem(PIN_KEY, JSON.stringify({ salt, hash: await sha(salt + ':' + pin) })); }
+async function checkPin(pin) { const p = getPin(); return !!p && p.hash === await sha(p.salt + ':' + pin); }
+let pinOpen = false, hiddenAt = 0;
+/** The keypad. 'unlock' resolves true once the right code is typed; 'set' resolves with the new code, or null for "Not now". */
+function pinPad(mode) {
+  pinOpen = true;
+  return new Promise(resolve => {
+    const root = document.documentElement, dots = [...document.querySelectorAll('#pins i')];
+    let typed = '', first = null;
+    const say = t => { $('#lock-msg').textContent = t; };
+    const draw = () => dots.forEach((d, i) => d.classList.toggle('on', i < typed.length));
+    const shake = t => { say(t); typed = ''; draw(); const p = $('#pins'); p.classList.remove('shake'); void p.offsetWidth; p.classList.add('shake'); };
+    say(mode === 'set' ? 'Choose a 4-digit passcode' : 'Enter passcode'); draw();
+    $('#lock-forgot').hidden = mode !== 'unlock'; $('#lock-skip').hidden = mode !== 'set'; $('#lock-alt').hidden = true; $('#keys').hidden = false;
+    root.classList.add('locked');
+    const done = v => {
+      root.classList.remove('locked'); pinOpen = false;
+      $('#keys').onclick = $('#lock-forgot').onclick = $('#lock-skip').onclick = $('#lock-alt').onsubmit = null;
+      document.removeEventListener('keydown', onKey, true); resolve(v);
+    };
+    const full = async () => {
+      if (mode === 'unlock') { if (await checkPin(typed)) done(true); else shake('Wrong passcode. Try again.'); }
+      else if (first === null) { first = typed; typed = ''; draw(); say('Enter it again'); }
+      else if (typed === first) { await setPin(typed); done(typed); }
+      else { first = null; shake('Those didn’t match. Choose a passcode.'); }
+    };
+    const press = k => {
+      if (k === 'del') { typed = typed.slice(0, -1); return draw(); }
+      if (typed.length >= 4) return;
+      typed += k; draw(); if (typed.length === 4) setTimeout(full, 140);
+    };
+    const onKey = x => {
+      if (!$('#lock-alt').hidden) return;
+      if (/^[0-9]$/.test(x.key)) { press(x.key); x.preventDefault(); x.stopPropagation(); }
+      else if (x.key === 'Backspace') { press('del'); x.preventDefault(); x.stopPropagation(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    $('#keys').onclick = x => { const b = x.target.closest('[data-k]'); if (b) press(b.dataset.k); };
+    $('#lock-skip').onclick = () => done(null);
+    // Forgot: prove it's you with the long journal passcode, then the app passcode is removed.
+    $('#lock-forgot').onclick = () => { $('#keys').hidden = true; $('#lock-alt').hidden = false; say('Forgot your passcode?'); setTimeout(() => $('#lock-alt-pass').focus(), 30); };
+    $('#lock-alt').onsubmit = async x => {
+      x.preventDefault();
+      const d = await fetchLocked();
+      if (!d) { say('This site has no journal passcode to check. Clear this app’s website data to reset.'); return; }
+      try { await unlockText(d, $('#lock-alt-pass').value.trim()); }
+      catch { say('That journal passcode didn’t work.'); return; }
+      localStorage.removeItem(PIN_KEY); $('#lock-alt-pass').value = '';
+      done(true); toast('App passcode removed. Set a new one in Settings.');
+    };
+  });
+}
+/** Ask for the passcode when the app opens, and again after 5 minutes away. */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') hiddenAt = Date.now();
+  else if (getPin() && !pinOpen && hiddenAt && Date.now() - hiddenAt > 5 * 60e3) pinPad('unlock');
+});
+function drawPinSection() {
+  const el = $('#pinsec'); if (!el) return;
+  el.innerHTML = getPin()
+    ? `<h2>App passcode</h2><p style="margin:0 0 12px">On. Journalsism asks for your 4-digit passcode when you open it, and again after 5 minutes away. It only guards this device; your journal file on the site has its own, longer passcode.</p><div class="acts2"><button class="btn" id="pinchange">Change passcode</button><button class="btn" id="pinoff">Turn off</button></div>`
+    : `<h2>App passcode</h2><p style="margin:0 0 12px">Off. Add a 4-digit passcode so nobody can open your journal on this device.</p><button class="btn pri" id="pinon">Set passcode</button>`;
 }
 
 /* ---------- backups ---------- */
@@ -770,7 +842,7 @@ async function exportAll() {
   const file = typeof File === 'function' ? new File([blob], name, { type: 'application/json' }) : null;
   const touch = navigator.maxTouchPoints > 0;
   if (touch && file && navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'Journalism backup' }); saved = true; }
+    try { await navigator.share({ files: [file], title: 'Journalsism backup' }); saved = true; }
     catch (err) { if (err && err.name === 'AbortError') { toast('Backup not saved'); return false; } }
   }
   if (!saved) {
@@ -828,8 +900,11 @@ $('#main').addEventListener('click', x => {
   if (t.closest('#export')) return exportAll();
   if (t.closest('#pushon')) return turnOnPush();
   if (t.closest('#unlockrepo')) return offerUnlock(true);
+  if (t.closest('#pinon')) { pinPad('set').then(p => { if (p) toast('App passcode set'); drawPinSection(); }); return; }
+  if (t.closest('#pinchange')) { pinPad('unlock').then(() => pinPad('set')).then(p => { if (p) toast('Passcode changed'); drawPinSection(); }); return; }
+  if (t.closest('#pinoff')) { pinPad('unlock').then(() => { localStorage.removeItem(PIN_KEY); toast('App passcode turned off'); drawPinSection(); }); return; }
   if (t.closest('#copysub')) { const v = $('#subcode').value; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(() => toast('Setup code copied'), () => { $('#subcode').select(); toast('Select the code and copy it'); }); return; }
-  if (t.closest('#testpush')) { swReg().then(r => r && r.showNotification('Journalism', { body: REMIND_TEXT, icon: 'icons/icon-192.png', badge: 'icons/badge-96.png', tag: 'daily-reminder', data: { url: './#write' } })).catch(() => toast('Could not show a notification')); return; }
+  if (t.closest('#testpush')) { swReg().then(r => r && r.showNotification('Journalsism', { body: REMIND_TEXT, icon: 'icons/icon-192.png', badge: 'icons/badge-96.png', tag: 'daily-reminder', data: { url: './#write' } })).catch(() => toast('Could not show a notification')); return; }
   if (t.closest('#pushoff')) { swReg().then(r => r && r.pushManager.getSubscription()).then(s => s && s.unsubscribe()).then(() => { toast('Reminders turned off on this device'); drawReminders(); }); return; }
   if (t.closest('#findcopies')) { S.copies = findCopies(); return drawCopies(); }
   const mc = t.closest('#mergecopies');
@@ -850,6 +925,7 @@ window.addEventListener('beforeunload', () => { saveNow(); });
 new ResizeObserver(setHH).observe($('#top'));
 
 /* ---------- boot ---------- */
+$('#dateline').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 render();
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -858,6 +934,7 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && store) updateBadge(); });
 window.addEventListener('hashchange', () => { if (location.hash === '#write' && store) { history.replaceState(null, '', location.pathname + location.search); openEntry(null, true); } });
 (async () => {
+  if (getPin()) await pinPad('unlock'); else document.documentElement.classList.remove('locked');
   try {
     store = await JournalStore.open();
     for (const j of await store.journals()) if (j && j.name) J.set(j.name, j);

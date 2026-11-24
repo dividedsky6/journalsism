@@ -1,4 +1,4 @@
-# Journalism
+# Journalsism
 
 A personal journal app in the spirit of Day One. Plain HTML, CSS and JavaScript with no build step and no framework.
 
@@ -31,6 +31,10 @@ On iPhone, Journalism can send a nightly notification and put a badge on its ico
 3. Tap **Copy setup code** and paste it as the repo secret `PUSH_SUBSCRIPTIONS` (**Settings → Secrets and variables → Actions → New repository secret**). For more devices, put one code per line. Each device makes its own key pair, which lives only on that device and in the secret.
 
 The schedule is `.github/workflows/reminder.yml` (9:00 pm Pacific; edit both cron lines and `REMINDER_TIME` to change it). **Actions → Daily reminder → Run workflow** sends one immediately to test. The notification comes every evening, since the scheduler can't see your private entries; the badge clears once you've written that day.
+
+## App passcode
+
+After you unlock your journal on a device, the app asks you to choose a 4-digit passcode. From then on it asks for it each time you open the app and after 5 minutes away. It's a lock screen for that device only; it isn't stored in the repo. **Settings → App passcode** changes it or turns it off. **Forgot passcode?** on the lock screen lets you in with the long journal passcode and removes the 4-digit one.
 
 ## Your journal on this site (passcode-locked)
 

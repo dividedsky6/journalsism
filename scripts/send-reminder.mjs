@@ -1,6 +1,6 @@
 // Sends the daily "What happened today?" push to every subscribed device.
 // Run by .github/workflows/reminder.yml. Secret: PUSH_SUBSCRIPTIONS, one setup code per line, copied
-// from Journalism → Settings → Daily reminder. Each code holds that device's subscription and its own keys.
+// from Journalsism → Settings → Daily reminder. Each code holds that device's subscription and its own keys.
 import webpush from 'web-push';
 
 const { PUSH_SUBSCRIPTIONS = '', SCHEDULE = '',
@@ -22,7 +22,7 @@ const subs = PUSH_SUBSCRIPTIONS.split('\n').map(s => s.trim()).filter(Boolean).m
 if (!subs.length) { console.log('No devices subscribed yet (PUSH_SUBSCRIPTIONS is empty).'); process.exit(0); }
 
 const SUBJECT = 'https://github.com/dividedsky6/journalsism';
-const payload = JSON.stringify({ title: 'Journalism', body: REMINDER_TEXT });
+const payload = JSON.stringify({ title: 'Journalsism', body: REMINDER_TEXT });
 let failed = 0;
 for (const [i, code] of subs.entries()) {
   if (!code.s || !code.k || !code.p) { failed++; console.error(`Device ${i + 1}: old-style code without keys. Turn reminders off and on in the app and paste the new setup code.`); continue; }

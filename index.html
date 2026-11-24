@@ -3,16 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#2f46d0">
-<title>Journalism</title>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
+<script>try{if(localStorage.getItem("journalism.pin"))document.documentElement.classList.add("locked")}catch(e){}</script>
+<title>Journalsism</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Journalism">
+<meta name="apple-mobile-web-app-title" content="Journalsism">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -20,17 +22,19 @@
 <body>
 <header class="top" id="top">
   <div class="wrap">
-    <div class="r1"><h1>Journalism</h1><span id="stats"></span>
-      <button class="btn pri" id="new"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New entry</button></div>
-    <div class="r2">
-      <div class="search"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search entries, tags, places" autocomplete="off"></div>
-      <nav class="tabs" id="tabs">
-        <button data-v="journals" aria-current="true">Journals</button>
-        <button data-v="entries">Entries</button>
-        <button data-v="calendar">Calendar</button>
-        <button data-v="import">Settings</button>
-      </nav>
+    <div class="mast">
+      <p class="dateline" id="dateline"></p>
+      <h1>Journalsism</h1>
+      <p id="stats"></p>
+      <button class="btn pri" id="new"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New entry</button>
     </div>
+    <nav class="tabs" id="tabs">
+      <button data-v="journals" aria-current="true">Journals</button>
+      <button data-v="entries">Entries</button>
+      <button data-v="calendar">Calendar</button>
+      <button data-v="import">Settings</button>
+    </nav>
+    <div class="search"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search the archive" autocomplete="off"></div>
   </div>
 </header>
 <main class="wrap"><div class="status" id="status">Opening your journal…</div><div id="main"></div></main>
@@ -69,6 +73,25 @@
   <p class="jm-err" id="u-err"></p>
   <div class="acts"><button class="btn" id="u-no">Start empty</button><button class="btn pri" id="u-yes">Unlock</button></div>
 </div></div>
+<div class="lock" id="lock" role="dialog" aria-modal="true" aria-labelledby="lock-mast">
+  <div class="lock-in">
+    <p class="dateline">Private</p>
+    <h2 class="lock-mast" id="lock-mast">Journalsism</h2>
+    <p class="lock-msg" id="lock-msg" aria-live="polite">Enter passcode</p>
+    <div class="pins" id="pins" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="keys" id="keys">
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <span></span><button data-k="0">0</button><button data-k="del" class="del" aria-label="Delete">Delete</button>
+    </div>
+    <form class="lock-alt" id="lock-alt" hidden>
+      <label class="jm-l">Journal passcode (the long one)<input id="lock-alt-pass" type="password" autocapitalize="none" spellcheck="false" autocomplete="current-password"></label>
+      <button class="btn pri" type="submit">Reset app passcode</button>
+    </form>
+    <div class="lock-links"><button id="lock-forgot" type="button">Forgot passcode?</button><button id="lock-skip" type="button" hidden>Not now</button></div>
+  </div>
+</div>
 <div id="toast" role="status"></div>
 
 <script src="config.js"></script>

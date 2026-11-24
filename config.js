@@ -1,4 +1,4 @@
-/* Journalism settings you may want to edit.
+/* Journalsism settings you may want to edit.
  * DEFAULT_JOURNAL_COLORS: colors given to journals with these names the first time they
  * appear (for example on a Day One import, since Day One's export has no colors).
  * You can still change any color in the app with "Edit journal". */
