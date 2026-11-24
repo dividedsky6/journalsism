@@ -184,6 +184,7 @@ main{padding-bottom:120px}
 .subcode{width:100%;height:96px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px;resize:none;overflow-wrap:anywhere}
 .acts2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .imp ol{padding-left:20px}
+#unlockslot .btn{margin:0 8px 8px 0}
 .hint{color:var(--mute);font-size:13px;margin:-6px 0 0}
 .card .dn b{color:var(--jc,var(--ink))}
 .jtag{display:inline-flex;align-items:center;gap:5px;color:var(--ink)}

@@ -32,6 +32,12 @@ On iPhone, Journalism can send a nightly notification and put a badge on its ico
 
 The schedule is `.github/workflows/reminder.yml` (9:00 pm Pacific; edit both cron lines and `REMINDER_TIME` to change it). **Actions → Daily reminder → Run workflow** sends one immediately to test. The notification comes every evening, since the scheduler can't see your private entries; the badge clears once you've written that day.
 
+## Your journal on this site (passcode-locked)
+
+`journal.locked.json` holds your entries encrypted with a passcode (PBKDF2-SHA256, 600,000 rounds, then AES-256-GCM). The file is unreadable without the passcode, even though the repo is public. On a device with no entries yet, the app asks for the passcode once, unlocks the journal and saves it on that device. You can also tap **Settings → Unlock the journal saved on this site**. **Start empty** skips it.
+
+The passcode is never stored in the repo. If you lose it, the locked file can't be opened, but your entries are still on any device that already unlocked them, and in your backups.
+
 ## Where entries are stored
 
 In the browser's IndexedDB (`storage.js`), on the device you use. Nothing is sent to a server. That means:

@@ -377,6 +377,7 @@ function renderImport() {
   <section class="imp">
     <h2>Backup</h2>
     <p style="color:var(--mute);margin:0 0 14px">Entries are saved in this browser only. A backup is one .json file with every entry, journal and color. To restore it, pick the file in the importer above.</p>
+    <span id="unlockslot"></span>
     <button class="btn" id="export" ${entries.size ? '' : 'disabled'}>Save backup (${entries.size.toLocaleString()} entries)</button>
     <p class="hint" style="margin:10px 0 0">${daysSinceBackup() === null ? 'No backup yet.' : `Last backup: ${daysSinceBackup() === 0 ? 'today' : daysSinceBackup() + ' days ago'}.`} You'll be reminded every 30 days. On iPhone, choose <b>Save to Files</b> → iCloud Drive.</p>
   </section>`;
@@ -387,6 +388,7 @@ function renderImport() {
   $('#file').addEventListener('change', x => { const f = x.target.files[0]; if (f) runImport(f); x.target.value = ''; });
   drawCopies();
   drawReminders();
+  fetchLocked().then(d => { const el = $('#unlockslot'); if (d && el) el.innerHTML = '<button class="btn" id="unlockrepo">Unlock the journal saved on this site</button>'; });
 }
 
 /* ---------- daily reminder (push notifications) and Home Screen badge ---------- */
@@ -634,6 +636,7 @@ $('#del').addEventListener('click', async () => {
 });
 document.addEventListener('keydown', x => {
   if (x.key === 'Escape' && !$('#bmodal').hidden) { $('#b-no').click(); return; }
+  if (x.key === 'Escape' && !$('#umodal').hidden) { $('#u-no').click(); return; }
   if (S.view === 'calendar' && (x.key === 'ArrowLeft' || x.key === 'ArrowRight') && $('#sheet').hidden && $('#jmodal').hidden && !/INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '')) { calStep(x.key === 'ArrowLeft' ? -1 : 1); return; } if (x.key === 'Escape' && !$('#jmodal').hidden) $('#jm-no').click(); else if (x.key === 'Escape' && !$('#modal').hidden) $('#m-no').click(); else if (x.key === 'Escape' && !$('#sheet').hidden && !editing) closeSheet(); });
 
 /* ---------- import ---------- */
@@ -720,6 +723,40 @@ async function runImport(file) {
     importing = false; stats(); const ex = $('#export'); if (ex) { ex.disabled = !entries.size; ex.textContent = `Download backup (${entries.size.toLocaleString()} entries)`; }
   }
 }
+/* ---------- passcode-locked journal shipped with the site (journal.locked.json) ---------- */
+async function fetchLocked() {
+  try { const r = await fetch('journal.locked.json', { cache: 'no-cache' }); if (!r.ok) return null; const d = await r.json(); return d && d.locked && d.data ? d : null; } catch { return null; }
+}
+const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function unlockText(d, pass) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: fromB64(d.salt), iterations: d.iterations }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  return new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(d.iv) }, key, fromB64(d.data)));
+}
+/** On a device with no entries yet, offer to unlock the journal saved on the site. Returns true if the dialog opened. */
+async function offerUnlock(force) {
+  if (!force) { if (entries.size) return false; try { if (localStorage.getItem('journalism.unlockDismissed')) return false; } catch {} }
+  const d = await fetchLocked();
+  if (!d) { if (force) toast('No locked journal on this site'); return false; }
+  $('#u-pass').value = ''; $('#u-err').textContent = ''; $('#umodal').hidden = false; setTimeout(() => $('#u-pass').focus(), 30);
+  const close = () => { $('#umodal').hidden = true; $('#u-yes').onclick = $('#u-no').onclick = $('#u-pass').onkeydown = null; };
+  $('#u-no').onclick = () => { try { localStorage.setItem('journalism.unlockDismissed', '1'); } catch {} close(); };
+  $('#u-pass').onkeydown = x => { if (x.key === 'Enter') { x.preventDefault(); $('#u-yes').click(); } };
+  $('#u-yes').onclick = async () => {
+    const pass = $('#u-pass').value.trim(); if (!pass) { $('#u-err').textContent = 'Type your passcode.'; return; }
+    $('#u-yes').disabled = true; $('#u-err').textContent = 'Unlocking…';
+    let text;
+    try { text = await unlockText(d, pass); }
+    catch { $('#u-err').textContent = 'That passcode didn’t work. Check it and try again.'; $('#u-yes').disabled = false; return; }
+    $('#u-yes').disabled = false; close();
+    S.view = 'import'; render();
+    await runImport(new File([text], 'Journalism.json', { type: 'application/json' }));
+    try { localStorage.setItem('journalism.lastBackup', String(Date.now())); } catch {} // the site's locked copy counts as a backup
+    S.view = 'journals'; render(); toast(`Unlocked ${entries.size.toLocaleString()} entries`);
+  };
+  return true;
+}
+
 /* ---------- backups ---------- */
 const lastBackup = () => { try { return +localStorage.getItem('journalism.lastBackup') || 0; } catch { return 0; } };
 const daysSinceBackup = () => { const l = lastBackup(); return l ? Math.floor((Date.now() - l) / 864e5) : null; };
@@ -790,6 +827,7 @@ $('#main').addEventListener('click', x => {
   }
   if (t.closest('#export')) return exportAll();
   if (t.closest('#pushon')) return turnOnPush();
+  if (t.closest('#unlockrepo')) return offerUnlock(true);
   if (t.closest('#copysub')) { const v = $('#subcode').value; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(() => toast('Setup code copied'), () => { $('#subcode').select(); toast('Select the code and copy it'); }); return; }
   if (t.closest('#testpush')) { swReg().then(r => r && r.showNotification('Journalism', { body: REMIND_TEXT, icon: 'icons/icon-192.png', badge: 'icons/badge-96.png', tag: 'daily-reminder', data: { url: './#write' } })).catch(() => toast('Could not show a notification')); return; }
   if (t.closest('#pushoff')) { swReg().then(r => r && r.pushManager.getSubscription()).then(s => s && s.unsubscribe()).then(() => { toast('Reminders turned off on this device'); drawReminders(); }); return; }
@@ -827,8 +865,9 @@ window.addEventListener('hashchange', () => { if (location.hash === '#write' && 
     await ensureJournals();
     status(''); render();
     updateBadge();
+    const unlocking = await offerUnlock(false);
     if (location.hash === '#write') { history.replaceState(null, '', location.pathname + location.search); openEntry(null, true); }
-    else monthlyBackupPrompt();
+    else if (!unlocking) monthlyBackupPrompt();
   } catch (err) {
     status('Could not open journal storage in this browser: ' + ((err && err.message) || err) + '. Private browsing can block it.');
   }
