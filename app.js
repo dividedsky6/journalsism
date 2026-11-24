@@ -243,20 +243,17 @@ function renderJournals() {
       ${e._ex ? `<span class="dek">${esc(e._ex)}</span>` : ''}
       <span class="byline">— ${esc(bylineDate(e))}</span>
     </button>`;
-  const span = a => { const f = fmt(a.first, { month: 'short', year: 'numeric' }), l = fmt(a.last, { month: 'short', year: 'numeric' }); return f === l ? f : `${f} – ${l}`; };
-  const dept = (name, color, a, key) => `<button class="dept" style="--jc:${color}" data-openj="${esc(key)}">
-      <span class="rubric">${esc(name)}</span>
-      <span class="dmeta">${a ? `${a.n.toLocaleString()} ${a.n === 1 ? 'entry' : 'entries'} · ${esc(span(a))}` : 'No entries yet'}</span>
-    </button>`;
-  let all = null;
-  if (entries.size) { const sd = sorted(); all = { n: sd.length, first: sd[sd.length - 1], last: sd[0] }; }
-  $('#main').innerHTML = `${backupNudge()}<header class="talkhead">${SPOT}<h2>The Talk of the Town</h2><p>Notes and comment from your journals</p></header>
-    ${SQUIG}${pieces.map((p, i) => piece(p, i)).join(SQUIG)}${SQUIG}
-    <section class="depts"><h2>Departments</h2>
-      ${js.length > 1 ? dept('All Entries', 'var(--ink)', all, '') : ''}
-      ${js.map(j => dept(j, colorOf(j), agg.get(j), j)).join('')}
-      <button class="dept new" data-newj><span class="rubric">+ New journal</span></button>
-    </section>`;
+  const toc = j => { const a = agg.get(j); const latest = sorted().filter(e => e.journals.includes(j)).slice(0, 3);
+    return `<div class="tdept" style="--jc:${colorOf(j)}">
+      <button class="trow" data-openj="${esc(j)}"><span class="rubric">${esc(j)}</span><span class="lead"></span><span class="pg">${(a ? a.n : 0).toLocaleString()}</span></button>
+      ${latest.map(e => `<button class="tent" data-id="${esc(e.id)}"><i>${esc(e._title)}</i><small>${esc(fmt(e, { month: 'short', day: 'numeric', year: 'numeric' }))}</small></button>`).join('')}
+    </div>`; };
+  $('#main').innerHTML = `${backupNudge()}<section class="toc"><h2>Table of Contents</h2><p class="tsub">${entries.size.toLocaleString()} entries in ${js.length} ${js.length === 1 ? 'journal' : 'journals'}</p>
+      ${js.map(toc).join('')}
+      <button class="tnew rubric" data-newj>+ New journal</button>
+    </section>
+    <header class="talkhead">${SPOT}<h2>The Talk of the Town</h2><p>Notes and comment from your journals</p></header>
+    ${SQUIG}${pieces.map((p, i) => piece(p, i)).join(SQUIG)}${SQUIG}`;
 }
 
 /** Colors for a day: the selected journal's, or every journal with an entry that day. */

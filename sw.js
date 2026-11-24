@@ -1,8 +1,10 @@
 /* Journalsism service worker: works offline, shows the daily reminder, sets the Home Screen badge.
  * Bump VERSION when you change the app so phones pick up the new files. */
-const VERSION = 'journalism-v6';
+const VERSION = 'journalism-v7';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'storage.js', 'config.js', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/badge-96.png'];
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/badge-96.png',
+  'fonts/NYIrvin.woff2', 'fonts/ACaslonPro-Regular.woff2', 'fonts/ACaslonPro-Italic.woff2', 'fonts/ACaslonPro-Semibold.woff2',
+  'fonts/ACaslonPro-SemiboldItalic.woff2', 'fonts/ACaslonPro-Bold.woff2', 'fonts/ACaslonPro-BoldItalic.woff2'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

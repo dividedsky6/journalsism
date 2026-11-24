@@ -1,3 +1,10 @@
+@font-face{font-family:"Adobe Caslon Pro";src:url(fonts/ACaslonPro-Regular.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Adobe Caslon Pro";src:url(fonts/ACaslonPro-Italic.woff2) format("woff2");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"Adobe Caslon Pro";src:url(fonts/ACaslonPro-Semibold.woff2) format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Adobe Caslon Pro";src:url(fonts/ACaslonPro-SemiboldItalic.woff2) format("woff2");font-weight:600;font-style:italic;font-display:swap}
+@font-face{font-family:"Adobe Caslon Pro";src:url(fonts/ACaslonPro-Bold.woff2) format("woff2");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Adobe Caslon Pro";src:url(fonts/ACaslonPro-BoldItalic.woff2) format("woff2");font-weight:700;font-style:italic;font-display:swap}
+@font-face{font-family:"NY Irvin";src:url(fonts/NYIrvin.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
 /* VOICE: quiet, private, tender: a well-made notebook with lots of air
    IDEA: a bound daily journal: big day numerals in the margin, one cobalt ribbon
    PICTURE: the timeline itself, dated pages, "On this day" strip on top
@@ -470,3 +477,34 @@ h1{font:400 clamp(46px,13vw,72px)/1 var(--deco);letter-spacing:0}
   #toast{bottom:calc(80px + env(safe-area-inset-bottom))}
   .piece .hed{font-size:24px}
 }
+
+/* ===================================================================
+   House type: NY Irvin for the masthead and section heads, Adobe Caslon Pro for everything else
+   (heds, reading, and spaced caps for rubrics and buttons).
+   =================================================================== */
+:root{--serif:"Adobe Caslon Pro","Libre Caslon Text",Georgia,serif;--display:"Adobe Caslon Pro","Libre Caslon Display",Georgia,serif;--sans:"Adobe Caslon Pro",Georgia,serif;--deco:"NY Irvin","Adobe Caslon Pro",Georgia,serif}
+body,button,input,select,textarea{font-family:var(--serif)}
+h1,.lock-mast,.talkhead h2,.toc h2,.jban h2{font-family:var(--deco);font-weight:400;font-synthesis:none}
+h1{font-size:clamp(50px,14vw,78px)}
+.lock-mast{font-size:clamp(58px,18vw,74px)}
+.rubric,.tabs button,.btn,.chip,.month,.meta,.dateline,.facts,.lock-strip,.lock-links button,.dn span,.jcount,.jspan,.fields label,.jm-l,#toast,.seg button,.cal .wd,.otd h2,.sh-top .when{font-family:var(--sans);font-weight:600}
+.piece .hed,.card h3,.prose>.facts+h2,.prose h3,.prose h4,.modal h3,.imp h2,.calh h2,.empty h2,.otd .yr,.dn b{font-family:var(--display);font-weight:400}
+.prose>.facts+h2{font-weight:400}
+.keys button{font-family:var(--serif)}
+
+/* Table of Contents: your journals, up front */
+.toc{margin:8px 0 6px}
+.toc h2{margin:22px 0 2px;text-align:center;font-size:clamp(30px,8.5vw,40px);line-height:1.05}
+.toc .tsub{margin:0 0 10px;text-align:center;font:italic 14px/1.4 var(--serif);color:var(--mute)}
+.tdept{border-top:1px solid var(--ink);padding:12px 0 10px}
+.tdept:last-of-type{border-bottom:1px solid var(--ink)}
+.trow{display:flex;align-items:baseline;gap:8px;width:100%;border:0;background:none;padding:2px 0;text-align:left;color:var(--ink);min-height:36px}
+.trow .rubric{flex:none;font-size:11.5px}
+.trow .lead{flex:1;border-bottom:1px dotted var(--mute);transform:translateY(-4px)}
+.trow .pg{flex:none;font:400 20px/1 var(--display)}
+.tent{display:flex;align-items:baseline;gap:10px;width:100%;border:0;background:none;padding:5px 0 5px 14px;text-align:left;color:var(--ink);min-height:36px}
+.tent i{flex:1;font:italic 16px/1.3 var(--serif);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tent small{flex:none;font:12.5px/1 var(--serif);color:var(--mute)}
+.tent:hover i,.trow:hover .rubric{text-decoration:underline;text-underline-offset:3px}
+.tnew{display:block;margin:10px auto 0;border:0;background:none;min-height:44px;color:var(--mute)}
+@media(max-width:600px){.tabs button{font-size:10.5px;letter-spacing:.06em;padding:0 2px}.tabs button:nth-child(2){margin-right:64px}}
