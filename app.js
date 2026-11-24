@@ -219,26 +219,44 @@ function renderEntries() {
   $('#main').innerHTML = h;
 }
 
+const SQUIG = '<div class="squig" aria-hidden="true"></div>';
+const SPOT = '<svg class="spot" viewBox="0 0 64 40" aria-hidden="true"><path d="M6 34 L18 14 L24 22 L32 6 L40 22 L46 14 L58 34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 36 H62" stroke="currentColor" stroke-width="1.6"/><circle cx="50" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>';
+/** Byline date in magazine style: "Sat., Jan. 11, 2025". */
+function bylineDate(e, withTime) {
+  const s = fmt(e, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).replace(/\b(Sun|Mon|Tue|Wed|Thu|Fri|Sat|Jan|Feb|Mar|Apr|Aug|Sep|Oct|Nov|Dec)\b(?!\.)/g, '$1.').replace(/\bSep\./, 'Sept.');
+  if (!withTime) return s;
+  return s + ', ' + fmt(e, { hour: 'numeric', minute: '2-digit' }).replace(/\s?AM$/i, ' a.m.').replace(/\s?PM$/i, ' p.m.');
+}
+/** Home: The Talk of the Town. The latest piece from each journal, then the departments. */
 function renderJournals() {
   const agg = journalStats(); const js = journals();
   if (!js.length) {
     $('#main').innerHTML = `<div class="empty"><h2>Your first page is blank</h2><p>Start a journal, or bring your Day One journals across from the Settings tab.</p><p><button class="btn pri" data-newj>New journal</button> <button class="btn" data-act="import">Import from Day One</button></p></div>`;
     return;
   }
+  const byLatest = js.filter(j => agg.get(j)).sort((a, b) => agg.get(b).last.date.localeCompare(agg.get(a).last.date));
+  const seen = new Set(); const pieces = [];
+  for (const j of byLatest) { const e = agg.get(j).last; if (seen.has(e.id)) continue; seen.add(e.id); pieces.push([j, e]); }
+  const piece = ([j, e], i) => `<button class="piece${i === 0 ? ' lead' : ''}" data-id="${esc(e.id)}" style="--jc:${colorOf(j)}">
+      <span class="rubric">${i === 0 ? 'Comment · ' : ''}${e.journals.map(esc).join(' & ')}</span>
+      <span class="hed">${esc(e._title)}</span>
+      ${e._ex ? `<span class="dek">${esc(e._ex)}</span>` : ''}
+      <span class="byline">— ${esc(bylineDate(e))}</span>
+    </button>`;
   const span = a => { const f = fmt(a.first, { month: 'short', year: 'numeric' }), l = fmt(a.last, { month: 'short', year: 'numeric' }); return f === l ? f : `${f} – ${l}`; };
-  const book = (name, color, a, cls, key) => `<button class="jcard ${cls}" style="--jc:${color}" data-openj="${esc(key)}">
-      <span class="jname">${esc(name)}</span>
-      <span class="jcount"><b>${(a ? a.n : 0).toLocaleString()}</b>${a && a.n === 1 ? 'entry' : 'entries'}</span>
-      <span class="jspan">${a ? esc(span(a)) : 'No entries yet'}</span>
-      ${a ? `<span class="jlast">${esc(a.last._title)}</span>` : ''}
+  const dept = (name, color, a, key) => `<button class="dept" style="--jc:${color}" data-openj="${esc(key)}">
+      <span class="rubric">${esc(name)}</span>
+      <span class="dmeta">${a ? `${a.n.toLocaleString()} ${a.n === 1 ? 'entry' : 'entries'} · ${esc(span(a))}` : 'No entries yet'}</span>
     </button>`;
   let all = null;
   if (entries.size) { const sd = sorted(); all = { n: sd.length, first: sd[sd.length - 1], last: sd[0] }; }
-  $('#main').innerHTML = `${backupNudge()}<div class="jgrid">
-    ${js.length > 1 ? book('All Entries', '#2a2f3a', all, 'all', '') : ''}
-    ${js.map(j => book(j, colorOf(j), agg.get(j), '', j)).join('')}
-    <button class="jcard new" data-newj><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New journal</button>
-  </div>`;
+  $('#main').innerHTML = `${backupNudge()}<header class="talkhead">${SPOT}<h2>The Talk of the Town</h2><p>Notes and comment from your journals</p></header>
+    ${SQUIG}${pieces.map((p, i) => piece(p, i)).join(SQUIG)}${SQUIG}
+    <section class="depts"><h2>Departments</h2>
+      ${js.length > 1 ? dept('All Entries', 'var(--ink)', all, '') : ''}
+      ${js.map(j => dept(j, colorOf(j), agg.get(j), j)).join('')}
+      <button class="dept new" data-newj><span class="rubric">+ New journal</span></button>
+    </section>`;
 }
 
 /** Colors for a day: the selected journal's, or every journal with an entry that day. */
@@ -526,7 +544,7 @@ function drawSheet() {
   if (!editing) {
     const where = [String(e.place || '').replace(/,\s*(United States|USA|US)$/i, ''), weatherTxt(e.weather)].filter(Boolean).join(' · ');
     const facts = [where, ...e.tags.map(t => '#' + t)].filter(Boolean);
-    $('#sbody').innerHTML = `<article class="prose"><div class="facts">${e.journals.map(j => `<span class="jf" style="--jc:${colorOf(j)}">${esc(j)}</span>`).join('')}${facts.map(f => `<span>${esc(f)}</span>`).join('')}</div>${md(asTitled(e.text), e) || '<p style="color:var(--mute)">Empty entry</p>'}</article>`;
+    $('#sbody').innerHTML = `<article class="prose"><div class="facts">${e.journals.map(j => `<span class="jf" style="--jc:${colorOf(j)}">${esc(j)}</span>`).join('')}${facts.map(f => `<span>${esc(f)}</span>`).join('')}</div>${md(asTitled(e.text), e) || '<p style="color:var(--mute)">Empty entry</p>'}<div class="endmark" aria-hidden="true">◆</div><p class="byline">— ${esc(bylineDate(e, true))}</p></article>`;
     return;
   }
   const all = tags();
@@ -926,6 +944,7 @@ new ResizeObserver(setHH).observe($('#top'));
 
 /* ---------- boot ---------- */
 $('#dateline').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+$('#lock-date').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).replace(/^(Jan|Feb|Mar|Apr|Aug|Sep|Oct|Nov|Dec)\b/, '$1.');
 render();
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   navigator.serviceWorker.register('sw.js').catch(() => {});

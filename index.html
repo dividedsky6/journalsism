@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#fbf8f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
 <script>try{if(localStorage.getItem("journalism.pin"))document.documentElement.classList.add("locked")}catch(e){}</script>
 <title>Journalsism</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Limelight&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -29,8 +29,8 @@
       <button class="btn pri" id="new"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New entry</button>
     </div>
     <nav class="tabs" id="tabs">
-      <button data-v="journals" aria-current="true">Journals</button>
-      <button data-v="entries">Entries</button>
+      <button data-v="journals" aria-current="true">The Talk</button>
+      <button data-v="entries">Archive</button>
       <button data-v="calendar">Calendar</button>
       <button data-v="import">Settings</button>
     </nav>
@@ -74,22 +74,132 @@
   <div class="acts"><button class="btn" id="u-no">Start empty</button><button class="btn pri" id="u-yes">Unlock</button></div>
 </div></div>
 <div class="lock" id="lock" role="dialog" aria-modal="true" aria-labelledby="lock-mast">
-  <div class="lock-in">
-    <p class="dateline">Private</p>
+  <div class="lock-cover">
+    <svg role="img" aria-label="Painted cover: late afternoon on a Hollywood corner. Sun on a stucco coffee shop, a woman in a red dress at an upstairs window, a man waiting on the sidewalk, the Capitol Records tower and the Hollywood sign behind." class="lock-art" viewBox="0 0 390 844" preserveAspectRatio="xMidYMax slice">
+    <defs>
+      <filter id="lc-brush" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <filter id="lc-grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="2"/>
+        <feColorMatrix values="0 0 0 0 0.25  0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0.55 0"/>
+      </filter>
+      <filter id="lc-weave" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="turbulence" baseFrequency="0.012 0.18" numOctaves="2" seed="11"/>
+        <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 -0.08"/>
+      </filter>
+      <linearGradient id="lc-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6fa3bd"/>
+        <stop offset=".55" stop-color="#a9cdd2"/>
+        <stop offset="1" stop-color="#eedfbd"/>
+      </linearGradient>
+    </defs>
+
+    <g filter="url(#lc-brush)">
+      <rect width="390" height="460" fill="url(#lc-sky)"/>
+      <g fill="none" stroke-linecap="round" opacity=".35">
+        <path d="M-10 150 C 80 140, 160 156, 260 146" stroke="#d7e8e6" stroke-width="10"/>
+        <path d="M120 200 C 200 192, 300 204, 400 194" stroke="#c4dcdc" stroke-width="7"/>
+        <path d="M-10 236 C 60 230, 140 240, 220 232" stroke="#f1e6cc" stroke-width="6"/>
+      </g>
+
+      <path d="M0 360 C 40 330, 70 318, 110 322 C 150 326, 170 300, 210 296 C 250 292, 280 318, 320 314 C 350 311, 372 300, 390 296 L390 480 L0 480 Z" fill="#c98e57"/>
+      <path d="M110 322 C 124 350, 122 380, 140 410 L170 480 L120 480 C 112 430, 104 380, 110 322 Z" fill="#8e6278" opacity=".75"/>
+      <path d="M210 296 C 214 330, 230 360, 226 400 L250 480 L210 480 Z" fill="#8e6278" opacity=".7"/>
+      <path d="M320 314 C 322 340, 336 370, 334 400 L352 480 L322 480 Z" fill="#8e6278" opacity=".6"/>
+      <g fill="#fbf4e2" font-family="Jost, Arial, sans-serif" font-weight="600" font-size="12.5" letter-spacing="2.4">
+        <text x="30" y="350" transform="rotate(-6 30 350)">HOLLYWOOD</text>
+      </g>
+
+      <rect x="200" y="468" width="130" height="176" fill="#b98476"/>
+      <rect x="200" y="468" width="130" height="6" fill="#94605a"/>
+      <rect x="318" y="452" width="72" height="190" fill="#d9846a"/>
+      <rect x="318" y="452" width="72" height="8" fill="#b4604f"/>
+      <g fill="#33505a"><rect x="328" y="474" width="14" height="22"/><rect x="352" y="474" width="14" height="22"/><rect x="376" y="474" width="14" height="22"/><rect x="328" y="514" width="14" height="22"/><rect x="352" y="514" width="14" height="22"/></g>
+
+      <rect x="284" y="118" width="3" height="78" fill="#f3ead6"/>
+      <circle cx="285.5" cy="114" r="4.5" fill="#d8322a"/>
+      <path d="M270 196 h31 v12 h-31 z" fill="#efdcb4"/><path d="M286 196 h15 v12 h-15 z" fill="#8a7795"/>
+      <path d="M264 208 h43 v34 h-43 z" fill="#efdcb4"/><path d="M286 208 h21 v34 h-21 z" fill="#8a7795"/>
+      <path d="M256 242 h59 v400 h-59 z" fill="#efdcb4"/><path d="M286 242 h29 v400 h-29 z" fill="#8a7795"/>
+      <g stroke-width="3">
+        <path d="M252 262 H319 M252 286 H319 M252 310 H319 M252 334 H319 M252 358 H319 M252 382 H319 M252 406 H319 M252 430 H319 M252 454 H319 M252 478 H319 M252 502 H319 M252 526 H319 M252 550 H319 M252 574 H319 M252 598 H319 M252 622 H319" stroke="#b08a5e"/>
+        <path d="M286 262 H319 M286 286 H319 M286 310 H319 M286 334 H319 M286 358 H319 M286 382 H319 M286 406 H319 M286 430 H319 M286 454 H319 M286 478 H319 M286 502 H319 M286 526 H319 M286 550 H319 M286 574 H319 M286 598 H319 M286 622 H319" stroke="#5d4c6e"/>
+        <path d="M260 222 H304" stroke="#b08a5e"/>
+      </g>
+
+      <g>
+        <path d="M352 644 C 352 560, 354 470, 358 352 L362 352 C 360 470, 358 560, 358 644 Z" fill="#6b4a3e"/>
+        <path d="M358 352 C 342 338, 320 342, 310 354 M358 352 C 372 336, 392 336, 402 348 M358 352 C 352 334, 340 324, 326 324 M358 352 C 364 334, 378 326, 392 326 M358 352 C 348 360, 338 374, 334 388 M358 352 C 368 362, 378 374, 382 388" fill="none" stroke="#2f4a3a" stroke-width="7" stroke-linecap="round"/>
+      </g>
+      <g>
+        <path d="M232 644 C 232 540, 236 420, 242 272 L247 272 C 242 420, 239 540, 239 644 Z" fill="#7a5444"/>
+        <path d="M243 272 C 226 258, 202 260, 190 274 M243 272 C 258 256, 280 256, 292 268 M243 272 C 236 252, 222 244, 206 244 M243 272 C 250 252, 266 244, 282 246 M243 272 C 232 282, 222 296, 218 312 M243 272 C 254 282, 264 296, 268 312" fill="none" stroke="#2f4a3a" stroke-width="8" stroke-linecap="round"/>
+      </g>
+
+      <path d="M206 386 L236 398 L236 644 L206 644 Z" fill="#8a5f6c"/>
+      <rect x="0" y="380" width="208" height="264" fill="#e7b465"/>
+      <rect x="0" y="378" width="210" height="12" fill="#f1cf8f"/>
+      <rect x="0" y="390" width="208" height="7" fill="#a9763f"/>
+      <g fill="#294348">
+        <rect x="18" y="420" width="42" height="64"/><rect x="84" y="420" width="42" height="64"/><rect x="150" y="420" width="42" height="64"/>
+      </g>
+      <g fill="#f2e2bd"><rect x="18" y="420" width="42" height="24"/><rect x="150" y="420" width="42" height="34"/></g>
+      <path d="M84 420 h42 v22 h-42 z" fill="#f2e2bd" opacity=".9"/>
+      <g>
+        <path d="M94 484 C 94 466, 100 456, 106 454 C 114 456, 118 466, 118 484 Z" fill="#b5322b"/>
+        <circle cx="106" cy="448" r="6.5" fill="#e3b08a"/>
+        <path d="M99 446 C 100 438, 112 437, 113 446 C 110 442, 103 442, 99 446 Z" fill="#3d2a24"/>
+        <path d="M92 476 C 98 470, 114 470, 120 476" stroke="#e3b08a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </g>
+      <rect x="12" y="484" width="54" height="5" fill="#f1cf8f"/><rect x="78" y="484" width="54" height="5" fill="#f1cf8f"/><rect x="144" y="484" width="54" height="5" fill="#f1cf8f"/>
+
+      <rect x="0" y="502" width="208" height="16" fill="#f4e6c4"/>
+      <text x="104" y="514" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-weight="600" font-size="9.5" letter-spacing="2" fill="#2a3e3a">COFFEE · SODAS · LUNCH</text>
+      <path d="M0 520 H210 L222 552 H0 Z" fill="#2f6b52"/>
+      <path d="M0 520 H210 L222 552 H0 Z" fill="none" stroke="#1f4a38" stroke-width="1"/>
+      <g fill="#e8dcc0" opacity=".85">
+        <path d="M18 520 h14 l2 32 h-14 z"/><path d="M60 520 h14 l3 32 h-14 z"/><path d="M102 520 h14 l3 32 h-14 z"/><path d="M144 520 h14 l4 32 h-14 z"/><path d="M186 520 h14 l5 32 h-14 z"/>
+      </g>
+      <rect x="10" y="556" width="190" height="80" fill="#1e3336"/>
+      <path d="M10 556 L80 556 L30 636 L10 636 Z" fill="#3c5a5a" opacity=".6"/>
+      <rect x="104" y="556" width="3" height="80" fill="#c99a55"/>
+
+      <rect x="0" y="642" width="390" height="34" fill="#ecdcb4"/>
+      <path d="M208 642 L236 642 L330 676 L262 676 Z" fill="#a98a7a" opacity=".8"/>
+      <rect x="0" y="674" width="390" height="5" fill="#b49c74"/>
+      <rect x="0" y="679" width="390" height="165" fill="#3a4152"/>
+      <g fill="#565e70" opacity=".8"><path d="M40 700 h40 l-8 144 h-46 z"/><path d="M120 700 h40 l2 144 h-46 z"/><path d="M200 700 h40 l12 144 h-46 z"/><path d="M280 700 h40 l22 144 h-46 z"/></g>
+
+      <g>
+        <path d="M290 660 L360 672" stroke="#a98a7a" stroke-width="7" stroke-linecap="round" opacity=".9"/>
+        <path d="M283 662 L284 628 C 284 618, 296 618, 296 628 L297 662 Z" fill="#26304a"/>
+        <circle cx="290" cy="611" r="6" fill="#e0ab84"/>
+        <path d="M281 607 h18 v-3 h-4 v-6 h-10 v6 h-4 z" fill="#3d2f2a"/>
+        <path d="M284 630 h4 v10 h-4 z" fill="#f1cf8f" opacity=".6"/>
+      </g>
+    </g>
+
+    <rect width="390" height="844" filter="url(#lc-weave)" opacity=".5"/>
+    <rect width="390" height="844" filter="url(#lc-grain)" opacity=".5"/>
+    <rect x="0" y="679" width="390" height="165" fill="#141826" opacity=".38"/>
+  </svg>
+    <div class="lock-strip"><span id="lock-date"></span><span>The L.A. Issue</span></div>
     <h2 class="lock-mast" id="lock-mast">Journalsism</h2>
-    <p class="lock-msg" id="lock-msg" aria-live="polite">Enter passcode</p>
-    <div class="pins" id="pins" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-    <div class="keys" id="keys">
-      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
-      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
-      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
-      <span></span><button data-k="0">0</button><button data-k="del" class="del" aria-label="Delete">Delete</button>
+    <div class="lock-in">
+      <p class="lock-msg" id="lock-msg" aria-live="polite">Enter passcode</p>
+      <div class="pins" id="pins" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="keys" id="keys">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="0">0</button><span></span><button data-k="del" class="del" aria-label="Delete">&#9003;</button>
+      </div>
+      <form class="lock-alt" id="lock-alt" hidden>
+        <label class="jm-l">Journal passcode (the long one)<input id="lock-alt-pass" type="password" autocapitalize="none" spellcheck="false" autocomplete="current-password"></label>
+        <button class="btn pri" type="submit">Reset app passcode</button>
+      </form>
+      <div class="lock-links"><button id="lock-forgot" type="button">Forgot passcode?</button><button id="lock-skip" type="button" hidden>Not now</button></div>
     </div>
-    <form class="lock-alt" id="lock-alt" hidden>
-      <label class="jm-l">Journal passcode (the long one)<input id="lock-alt-pass" type="password" autocapitalize="none" spellcheck="false" autocomplete="current-password"></label>
-      <button class="btn pri" type="submit">Reset app passcode</button>
-    </form>
-    <div class="lock-links"><button id="lock-forgot" type="button">Forgot passcode?</button><button id="lock-skip" type="button" hidden>Not now</button></div>
   </div>
 </div>
 <div id="toast" role="status"></div>
